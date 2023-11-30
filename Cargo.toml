@@ -11,7 +11,7 @@ categories = ["common"]
 keywords = ["common"]
 
 [features]
-default = ["full"]
+default = []
 full = [
     "cert",
     "config",
