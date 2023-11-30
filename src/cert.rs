@@ -1,11 +1,15 @@
 use std::{fs, path::PathBuf};
 
+use async_rustls::rustls::client::{ServerCertVerified, ServerCertVerifier};
 use color_eyre::eyre::{bail, Context, Result};
 use rcgen::{
     BasicConstraints, Certificate, CertificateParams, CertificateSigningRequest, DistinguishedName,
     DnType, DnValue, IsCa, KeyPair, PKCS_ECDSA_P256_SHA256,
 };
+use rustls::server::ParsedCertificate;
 use rustls::RootCertStore;
+use rustls::{client::verify_server_cert_signed_by_trust_anchor, ServerName};
+use std::time::SystemTime;
 
 pub fn ca_cert() -> (Certificate, String, String) {
     let mut params = CertificateParams::default();
@@ -109,47 +113,97 @@ pub fn read_key(key_path: &PathBuf) -> Result<rustls::PrivateKey> {
     Ok(key)
 }
 
-#[test]
-fn test() {
-    use crate::file::{read_file, write_file};
+/// `ServerCertVerifier` that verifies that the server is signed by a trusted root, but allows any serverName
+/// see the trait impl for more information.
+pub struct WebPkiVerifierAnyServerName {
+    roots: RootCertStore,
+}
+
+impl WebPkiVerifierAnyServerName {
+    /// Constructs a new `WebPkiVerifierAnyServerName`.
+    ///
+    /// `roots` is the set of trust anchors to trust for issuing server certs.
+    pub fn new(roots: RootCertStore) -> Self {
+        Self { roots }
+    }
+}
+
+impl ServerCertVerifier for WebPkiVerifierAnyServerName {
+    /// Will verify the certificate is valid in the following ways:
+    /// - Signed by a  trusted `RootCertStore` CA
+    /// - Not Expired
+    fn verify_server_cert(
+        &self,
+        end_entity: &rustls::Certificate,
+        intermediates: &[rustls::Certificate],
+        _server_name: &ServerName,
+        _scts: &mut dyn Iterator<Item = &[u8]>,
+        _ocsp_response: &[u8],
+        now: SystemTime,
+    ) -> Result<ServerCertVerified, async_rustls::rustls::Error> {
+        let cert = ParsedCertificate::try_from(end_entity)?;
+        verify_server_cert_signed_by_trust_anchor(&cert, &self.roots, intermediates, now)?;
+        Ok(ServerCertVerified::assertion())
+    }
+}
+
+#[tokio::test]
+async fn test() {
+    use crate::file::{create_file, read_file_to_string};
     // ca
     let (_, ca_cert_pem, ca_key_pem) = ca_cert();
-    write_file(ca_cert_pem.as_bytes(), "../config/ca_cert.pem");
-    write_file(ca_key_pem.as_bytes(), "../config/ca_key.pem");
+    create_file("./config/cert/ca_cert.pem", ca_cert_pem.as_bytes())
+        .await
+        .unwrap();
+    create_file("./config/cert/ca_key.pem", ca_key_pem.as_bytes())
+        .await
+        .unwrap();
 
     // server csr
     let (csr_pem, key_pem) = create_csr("test-host");
-    write_file(csr_pem.as_bytes(), "../config/server_csr.pem");
-    write_file(key_pem.as_bytes(), "../config/server_key.pem");
+    create_file("./config/cert/server_csr.pem", csr_pem.as_bytes())
+        .await
+        .unwrap();
+    create_file("./config/cert/server_key.pem", key_pem.as_bytes())
+        .await
+        .unwrap();
     // server sign
-    let ca_cert_pem = read_file("../config/ca_cert.pem").unwrap();
-    let ca_key_pem = read_file("../config/ca_key.pem").unwrap();
+    let ca_cert_pem = read_file_to_string("./config/cert/ca_cert.pem")
+        .await
+        .unwrap();
+    let ca_key_pem = read_file_to_string("./config/cert/ca_key.pem")
+        .await
+        .unwrap();
     let ca = restore_ca_cert(&ca_cert_pem, &ca_key_pem);
-    let csr_pem = read_file("../config/server_csr.pem").unwrap();
+    let csr_pem = read_file_to_string("./config/cert/server_csr.pem")
+        .await
+        .unwrap();
     let cert_pem = sign_csr(&csr_pem, &ca);
-    write_file(cert_pem.as_bytes(), "../config/server_cert.pem");
+    create_file("./config/cert/server_cert.pem", cert_pem.as_bytes())
+        .await
+        .unwrap();
 
     // client csr
     let (csr_pem, key_pem) = create_csr("client.test-host");
-    write_file(csr_pem.as_bytes(), "../config/client_csr.pem");
-    write_file(key_pem.as_bytes(), "../config/client_key.pem");
+    create_file("./config/cert/client_csr.pem", csr_pem.as_bytes())
+        .await
+        .unwrap();
+    create_file("./config/cert/client_key.pem", key_pem.as_bytes())
+        .await
+        .unwrap();
     // client sign
-    let ca_cert_pem = read_file("../config/ca_cert.pem").unwrap();
-    let ca_key_pem = read_file("../config/ca_key.pem").unwrap();
+    let ca_cert_pem = read_file_to_string("./config/cert/ca_cert.pem")
+        .await
+        .unwrap();
+    let ca_key_pem = read_file_to_string("./config/cert/ca_key.pem")
+        .await
+        .unwrap();
     let ca = restore_ca_cert(&ca_cert_pem, &ca_key_pem);
-    let csr_pem = read_file("../config/client_csr.pem").unwrap();
+    let csr_pem = read_file_to_string("./config/cert/client_csr.pem")
+        .await
+        .unwrap();
     let cert_pem = sign_csr(&csr_pem, &ca);
-    write_file(cert_pem.as_bytes(), "../config/client_cert.pem");
-
-    // client1 csr
-    let (csr_pem, key_pem) = create_csr("client1.test-host");
-    write_file(csr_pem.as_bytes(), "../config/client1_csr.pem");
-    write_file(key_pem.as_bytes(), "../config/client1_key.pem");
-    // client1 sign
-    let ca_cert_pem = read_file("../config/ca_cert.pem").unwrap();
-    let ca_key_pem = read_file("../config/ca_key.pem").unwrap();
-    let ca = restore_ca_cert(&ca_cert_pem, &ca_key_pem);
-    let csr_pem = read_file("../config/client1_csr.pem").unwrap();
-    let cert_pem = sign_csr(&csr_pem, &ca);
-    write_file(cert_pem.as_bytes(), "../config/client1_cert.pem");
+    create_file("./config/cert/client_cert.pem", cert_pem.as_bytes())
+        .await
+        .unwrap();
 }

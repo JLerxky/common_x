@@ -1,7 +1,6 @@
 use std::str::FromStr;
 
 use serde::{Deserialize, Serialize};
-use tracing::Level;
 use tracing_subscriber::{
     fmt::{format::Writer, time::FormatTime, writer::MakeWriterExt},
     EnvFilter,
@@ -28,6 +27,7 @@ impl Default for LogConfig {
 pub fn init_log_filter(filter: &str) {
     set_log(Some(LogConfig {
         filter: filter.to_owned(),
+        max_level: filter.to_owned(),
         ..Default::default()
     }));
 }
@@ -65,7 +65,7 @@ fn set_log(log_config: Option<LogConfig>) {
     // tracing 初始化
     if let Some(stdout) = stdout {
         let subscriber = tracing_subscriber::fmt()
-            .with_max_level(Level::INFO)
+            .compact()
             .with_timer(LocalTimer)
             .with_thread_ids(true)
             .with_env_filter(filter)
@@ -75,9 +75,10 @@ fn set_log(log_config: Option<LogConfig>) {
             .expect("setting default subscriber failed");
     } else {
         let subscriber = tracing_subscriber::fmt()
-            .with_max_level(Level::INFO)
+            .compact()
             .with_timer(LocalTimer)
             .with_thread_ids(true)
+            .with_ansi(false)
             .with_env_filter(filter)
             .with_writer(logfile.unwrap())
             .finish();
