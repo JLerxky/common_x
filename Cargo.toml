@@ -1,6 +1,6 @@
 [package]
 name = "common_x"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 description = "common"
 readme = "README.md"
@@ -16,6 +16,7 @@ full = [
     "cert",
     "config",
     "file",
+    "hasher",
     "log",
     "mailer",
     "rand",
@@ -39,6 +40,7 @@ config = [
     "dep:reqwest",
 ]
 file = ["dep:tokio"]
+hasher = ["dep:blake3"]
 log = ["dep:chrono", "dep:tracing-appender", "dep:tracing-subscriber"]
 mailer = ["dep:lettre"]
 rand = ["dep:rand", "dep:rand_chacha"]
@@ -50,6 +52,7 @@ time = ["dep:chrono"]
 [dependencies]
 async-rustls = { version = "0.4", optional = true }
 async-trait = { version = "0.1", optional = true }
+blake3 = { version = "1.5", optional = true }
 chrono = { version = "0.4", optional = true }
 color-eyre = "0.6"
 config = { version = "0.13", optional = true }

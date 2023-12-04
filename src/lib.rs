@@ -4,6 +4,8 @@ pub mod cert;
 pub mod configure;
 #[cfg(feature = "file")]
 pub mod file;
+#[cfg(feature = "hasher")]
+pub mod hasher;
 #[cfg(feature = "log")]
 pub mod log;
 #[cfg(feature = "mailer")]
