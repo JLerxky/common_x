@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use serde::{Deserialize, Serialize};
 use tracing_subscriber::{
     fmt::{format::Writer, time::FormatTime, writer::MakeWriterExt},
@@ -9,7 +7,6 @@ use tracing_subscriber::{
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct LogConfig {
-    max_level: String,
     filter: String,
     rolling_file: Option<(String, String)>,
 }
@@ -17,7 +14,6 @@ pub struct LogConfig {
 impl Default for LogConfig {
     fn default() -> Self {
         Self {
-            max_level: "info".to_owned(),
             filter: "info".to_owned(),
             rolling_file: Default::default(),
         }
@@ -27,7 +23,6 @@ impl Default for LogConfig {
 pub fn init_log_filter(filter: &str) {
     set_log(Some(LogConfig {
         filter: filter.to_owned(),
-        max_level: filter.to_owned(),
         ..Default::default()
     }));
 }
@@ -56,16 +51,14 @@ fn set_log(log_config: Option<LogConfig>) {
         ));
     } else {
         // stdout
-        stdout = Some(
-            std::io::stdout
-                .with_max_level(tracing::Level::from_str(&log_config.max_level).unwrap()),
-        );
+        stdout = Some(std::io::stdout.with_max_level(tracing::Level::TRACE));
     }
 
     // tracing 初始化
     if let Some(stdout) = stdout {
         let subscriber = tracing_subscriber::fmt()
             .compact()
+            .with_max_level(tracing::Level::TRACE)
             .with_timer(LocalTimer)
             .with_thread_ids(true)
             .with_env_filter(filter)
@@ -76,6 +69,7 @@ fn set_log(log_config: Option<LogConfig>) {
     } else {
         let subscriber = tracing_subscriber::fmt()
             .compact()
+            .with_max_level(tracing::Level::TRACE)
             .with_timer(LocalTimer)
             .with_thread_ids(true)
             .with_ansi(false)
