@@ -4,7 +4,7 @@ use serde::Serialize;
 use serde_json::json;
 use tracing::info;
 
-use crate::signal::shutdown_signal;
+pub type HttpServerHandle = salvo::server::ServerHandle;
 
 #[derive(Debug)]
 pub struct RESTfulError {
@@ -64,7 +64,7 @@ async fn health() -> impl Writer {
     ok_no_data()
 }
 
-pub async fn http_serve(service_name: &str, port: u16, router: Router) {
+pub async fn http_serve(service_name: &str, port: u16, router: Router) -> HttpServerHandle {
     let router = router.push(Router::with_path("health").get(health));
 
     let doc = OpenApi::new(format!("{} api", service_name), "0.0.1").merge_router(&router);
@@ -77,10 +77,12 @@ pub async fn http_serve(service_name: &str, port: u16, router: Router) {
 
     let acceptor = TcpListener::new(format!("0.0.0.0:{}", port)).bind().await;
 
-    Server::new(acceptor)
-        .serve_with_graceful_shutdown(service, async move { shutdown_signal().await }, None)
-        .await;
+    let server = Server::new(acceptor);
+    let handle = server.handle();
+    server.serve(service).await;
+
     info!("{service_name} listening on 0.0.0.0:{port}");
+    handle
 }
 
 #[derive(Debug, Serialize)]
