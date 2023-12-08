@@ -1,6 +1,6 @@
 [package]
 name = "common_x"
-version = "0.2.2"
+version = "0.2.3"
 edition = "2021"
 description = "common"
 readme = "README.md"
@@ -11,7 +11,7 @@ categories = ["development-tools", "game-development", "web-programming"]
 keywords = ["common"]
 
 [features]
-default = []
+default = ["full"]
 full = [
     "cert",
     "config",
@@ -24,6 +24,7 @@ full = [
     "ron",
     "toml",
     "time",
+    "signal",
 ]
 cert = [
     "file",
@@ -44,8 +45,9 @@ hasher = ["dep:blake3"]
 log = ["dep:chrono", "dep:tracing-appender", "dep:tracing-subscriber"]
 mailer = ["dep:lettre"]
 rand = ["dep:rand", "dep:rand_chacha"]
-restful = ["dep:salvo", "dep:serde_json", "dep:tokio"]
+restful = ["dep:salvo", "dep:serde_json", "dep:tokio", "signal"]
 ron = ["dep:ron"]
+signal = ["dep:tokio"]
 toml = ["dep:toml"]
 time = ["dep:chrono"]
 

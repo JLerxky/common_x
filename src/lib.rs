@@ -16,6 +16,8 @@ pub mod rand;
 pub mod restful;
 #[cfg(feature = "ron")]
 pub mod ron;
+#[cfg(feature = "signal")]
+pub mod signal;
 #[cfg(feature = "time")]
 pub mod time;
 #[cfg(feature = "toml")]

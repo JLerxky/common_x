@@ -2,8 +2,9 @@ use color_eyre::eyre::{eyre, Error};
 use salvo::{catcher::Catcher, prelude::*};
 use serde::Serialize;
 use serde_json::json;
-use tokio::signal;
 use tracing::info;
+
+use crate::signal::shutdown_signal;
 
 #[derive(Debug)]
 pub struct RESTfulError {
@@ -134,30 +135,4 @@ pub fn err(code: u16, message: String) -> RESTfulError {
         code,
         err: eyre!(message),
     }
-}
-
-async fn shutdown_signal() {
-    let ctrl_c = async {
-        signal::ctrl_c()
-            .await
-            .expect("failed to install Ctrl+C handler");
-    };
-
-    #[cfg(unix)]
-    let terminate = async {
-        signal::unix::signal(signal::unix::SignalKind::terminate())
-            .expect("failed to install signal handler")
-            .recv()
-            .await;
-    };
-
-    #[cfg(not(unix))]
-    let terminate = std::future::pending::<()>();
-
-    tokio::select! {
-        _ = ctrl_c => {},
-        _ = terminate => {},
-    }
-
-    info!("signal received, starting graceful shutdown");
 }
