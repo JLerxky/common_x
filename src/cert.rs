@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use std::{fs, path::PathBuf};
 
 use color_eyre::eyre::{bail, Context, Result};
@@ -7,8 +8,8 @@ use rcgen::{
 };
 use rustls::client::{ServerCertVerified, ServerCertVerifier};
 use rustls::server::ParsedCertificate;
-use rustls::RootCertStore;
 use rustls::{client::verify_server_cert_signed_by_trust_anchor, ServerName};
+use rustls::{ClientConfig, RootCertStore};
 use std::time::SystemTime;
 
 pub fn ca_cert() -> (Certificate, String, String) {
@@ -145,6 +146,15 @@ impl ServerCertVerifier for WebPkiVerifierAnyServerName {
         verify_server_cert_signed_by_trust_anchor(&cert, &self.roots, intermediates, now)?;
         Ok(ServerCertVerified::assertion())
     }
+}
+
+pub fn create_any_server_name_config(ca_path: &PathBuf) -> Result<ClientConfig> {
+    Ok(ClientConfig::builder()
+        .with_safe_defaults()
+        .with_custom_certificate_verifier(Arc::new(WebPkiVerifierAnyServerName::new(read_ca(
+            &ca_path.into(),
+        )?)))
+        .with_no_client_auth())
 }
 
 #[tokio::test]
