@@ -148,7 +148,7 @@ impl ServerCertVerifier for WebPkiVerifierAnyServerName {
     }
 }
 
-pub fn create_any_server_name_config(ca_path: &PathBuf) -> Result<ClientConfig> {
+pub fn create_any_server_name_config(ca_path: &str) -> Result<ClientConfig> {
     Ok(ClientConfig::builder()
         .with_safe_defaults()
         .with_custom_certificate_verifier(Arc::new(WebPkiVerifierAnyServerName::new(read_ca(
