@@ -26,13 +26,7 @@ full = [
     "time",
     "signal",
 ]
-cert = [
-    "file",
-    "dep:async-rustls",
-    "dep:rcgen",
-    "dep:rustls",
-    "dep:rustls-pemfile",
-]
+cert = ["file", "dep:rcgen", "dep:rustls", "dep:rustls-pemfile"]
 config = [
     "dep:async-trait",
     "dep:config",
@@ -52,7 +46,6 @@ toml = ["dep:toml"]
 time = ["dep:chrono"]
 
 [dependencies]
-async-rustls = { version = "0.4", optional = true }
 async-trait = { version = "0.1", optional = true }
 blake3 = { version = "1.5", optional = true }
 chrono = { version = "0.4", optional = true }
