@@ -1,9 +1,9 @@
-#[cfg(feature = "cert")]
-pub mod cert;
 #[cfg(feature = "config")]
 pub mod configure;
 #[cfg(feature = "file")]
 pub mod file;
+#[cfg(feature = "graceful")]
+pub mod graceful_shutdown;
 #[cfg(feature = "hasher")]
 pub mod hasher;
 #[cfg(feature = "log")]
@@ -20,5 +20,7 @@ pub mod ron;
 pub mod signal;
 #[cfg(feature = "time")]
 pub mod time;
+#[cfg(feature = "tls")]
+pub mod tls;
 #[cfg(feature = "toml")]
 pub mod toml;

@@ -2,7 +2,7 @@ use rand::Rng;
 use rand_chacha::ChaCha8Rng;
 use tracing::debug;
 
-pub fn rand_one_in_vec(probability: &Vec<usize>, rng: &mut ChaCha8Rng) -> usize {
+pub fn rand_one_in_vec(probability: &[usize], rng: &mut ChaCha8Rng) -> usize {
     let n = probability.len();
     if n == 1 {
         return 0;
@@ -28,7 +28,7 @@ pub fn rand_one_in_vec(probability: &Vec<usize>, rng: &mut ChaCha8Rng) -> usize 
 #[test]
 fn test() {
     use rand::SeedableRng;
-    use tracing::log::info;
+    use tracing::info;
 
     crate::log::init_log_filter("info");
 
