@@ -36,15 +36,15 @@ async fn main() -> Result<()> {
         _data: 1,
         close_hander: close_chain.handler(0),
     };
-    let mut c = C {
+    let c = C {
         _data: 3,
         close_hander: close_chain.handler(2),
     };
-    let mut b = B {
+    let b = B {
         _data: 2,
         close_hander: close_chain.handler(1),
     };
-    let mut b1 = B {
+    let b1 = B {
         _data: 2,
         close_hander: close_chain.handler(1),
     };

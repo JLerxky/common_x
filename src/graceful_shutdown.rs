@@ -14,11 +14,11 @@ pub struct CloseHandler {
 }
 
 impl CloseHandler {
-    pub fn handle(&mut self) {
+    pub fn handle(&self) {
         self.close_rv.recv().ok();
     }
 
-    pub async fn handle_async(&mut self) {
+    pub async fn handle_async(&self) {
         self.close_rv.recv_async().await.ok();
     }
 }
