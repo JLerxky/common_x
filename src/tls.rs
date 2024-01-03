@@ -6,11 +6,12 @@ use rcgen::{
     BasicConstraints, Certificate, CertificateParams, CertificateSigningRequest, DistinguishedName,
     DnType, DnValue, IsCa, KeyPair, PKCS_ECDSA_P256_SHA256,
 };
-use rustls::client::{ServerCertVerified, ServerCertVerifier};
+use rustls::client::danger::{ServerCertVerified, ServerCertVerifier};
+use rustls::client::verify_server_cert_signed_by_trust_anchor;
+use rustls::crypto::WebPkiSupportedAlgorithms;
+use rustls::pki_types::{CertificateDer, PrivateSec1KeyDer, ServerName, UnixTime};
 use rustls::server::ParsedCertificate;
-use rustls::{client::verify_server_cert_signed_by_trust_anchor, ServerName};
 use rustls::{ClientConfig, RootCertStore};
-use std::time::SystemTime;
 
 pub fn ca_cert() -> (Certificate, String, String) {
     let mut params = CertificateParams::default();
@@ -69,40 +70,36 @@ pub fn read_ca(ca_path: &PathBuf) -> Result<RootCertStore> {
     let ca_certs = read_certs(ca_path)?;
     let mut roots = rustls::RootCertStore::empty();
     for cert in ca_certs {
-        roots.add(&cert)?;
+        roots.add(cert)?;
     }
     Ok(roots)
 }
 
-pub fn read_certs(cert_path: &PathBuf) -> Result<Vec<rustls::Certificate>> {
+pub fn read_certs(cert_path: &PathBuf) -> Result<Vec<rustls::pki_types::CertificateDer>> {
     let cert_chain = fs::read(cert_path).context("failed to read certificate chain")?;
     let cert_chain = if cert_path.extension().map_or(false, |x| x == "der") {
-        vec![rustls::Certificate(cert_chain)]
+        vec![CertificateDer::from(cert_chain)]
     } else {
-        rustls_pemfile::certs(&mut &*cert_chain)
-            .context("invalid PEM-encoded certificate")?
-            .into_iter()
-            .map(rustls::Certificate)
-            .collect()
+        rustls_pemfile::certs(&mut &*cert_chain).collect::<Result<Vec<_>, _>>()?
     };
 
     Ok(cert_chain)
 }
 
-pub fn read_key(key_path: &PathBuf) -> Result<rustls::PrivateKey> {
+pub fn read_key(key_path: &PathBuf) -> Result<rustls::pki_types::PrivateKeyDer> {
     let key = fs::read(key_path).context("failed to read private key")?;
     let key = if key_path.extension().map_or(false, |x| x == "der") {
-        rustls::PrivateKey(key)
+        PrivateSec1KeyDer::from(key).into()
     } else {
-        let pkcs8 = rustls_pemfile::pkcs8_private_keys(&mut &*key)
-            .context("malformed PKCS #8 private key")?;
+        let pkcs8 =
+            rustls_pemfile::pkcs8_private_keys(&mut &*key).collect::<Result<Vec<_>, _>>()?;
         match pkcs8.into_iter().next() {
-            Some(x) => rustls::PrivateKey(x),
+            Some(x) => x.into(),
             None => {
-                let rsa = rustls_pemfile::rsa_private_keys(&mut &*key)
-                    .context("malformed PKCS #1 private key")?;
+                let rsa =
+                    rustls_pemfile::rsa_private_keys(&mut &*key).collect::<Result<Vec<_>, _>>()?;
                 match rsa.into_iter().next() {
-                    Some(x) => rustls::PrivateKey(x),
+                    Some(x) => x.into(),
                     None => {
                         bail!("no private keys found");
                     }
@@ -116,8 +113,10 @@ pub fn read_key(key_path: &PathBuf) -> Result<rustls::PrivateKey> {
 
 /// `ServerCertVerifier` that verifies that the server is signed by a trusted root, but allows any serverName
 /// see the trait impl for more information.
+#[derive(Debug)]
 pub struct WebPkiVerifierAnyServerName {
     roots: RootCertStore,
+    supported: WebPkiSupportedAlgorithms,
 }
 
 impl WebPkiVerifierAnyServerName {
@@ -125,7 +124,10 @@ impl WebPkiVerifierAnyServerName {
     ///
     /// `roots` is the set of trust anchors to trust for issuing server certs.
     pub fn new(roots: RootCertStore) -> Self {
-        Self { roots }
+        Self {
+            roots,
+            supported: rustls::crypto::ring::default_provider().signature_verification_algorithms,
+        }
     }
 }
 
@@ -135,22 +137,45 @@ impl ServerCertVerifier for WebPkiVerifierAnyServerName {
     /// - Not Expired
     fn verify_server_cert(
         &self,
-        end_entity: &rustls::Certificate,
-        intermediates: &[rustls::Certificate],
-        _server_name: &ServerName,
-        _scts: &mut dyn Iterator<Item = &[u8]>,
+        end_entity: &CertificateDer<'_>,
+        intermediates: &[CertificateDer<'_>],
+        _server_name: &ServerName<'_>,
         _ocsp_response: &[u8],
-        now: SystemTime,
+        now: UnixTime,
     ) -> Result<ServerCertVerified, rustls::Error> {
         let cert = ParsedCertificate::try_from(end_entity)?;
-        verify_server_cert_signed_by_trust_anchor(&cert, &self.roots, intermediates, now)?;
+        verify_server_cert_signed_by_trust_anchor(&cert, &self.roots, intermediates, now, &[])?;
         Ok(ServerCertVerified::assertion())
+    }
+
+    fn verify_tls12_signature(
+        &self,
+        message: &[u8],
+        cert: &CertificateDer<'_>,
+        dss: &rustls::DigitallySignedStruct,
+    ) -> std::prelude::v1::Result<rustls::client::danger::HandshakeSignatureValid, rustls::Error>
+    {
+        rustls::crypto::verify_tls12_signature(message, cert, dss, &self.supported)
+    }
+
+    fn verify_tls13_signature(
+        &self,
+        message: &[u8],
+        cert: &CertificateDer<'_>,
+        dss: &rustls::DigitallySignedStruct,
+    ) -> std::prelude::v1::Result<rustls::client::danger::HandshakeSignatureValid, rustls::Error>
+    {
+        rustls::crypto::verify_tls13_signature(message, cert, dss, &self.supported)
+    }
+
+    fn supported_verify_schemes(&self) -> Vec<rustls::SignatureScheme> {
+        self.supported.supported_schemes()
     }
 }
 
 pub fn create_any_server_name_config(ca_path: &str) -> Result<ClientConfig> {
     Ok(ClientConfig::builder()
-        .with_safe_defaults()
+        .dangerous()
         .with_custom_certificate_verifier(Arc::new(WebPkiVerifierAnyServerName::new(read_ca(
             &ca_path.into(),
         )?)))
