@@ -28,7 +28,7 @@ full = [
     "signal",
 ]
 graceful = ["dep:flume"]
-tls = ["file", "dep:rcgen", "dep:rustls", "dep:rustls-pemfile"]
+tls = ["file", "dep:rcgen", "dep:rustls", "dep:rustls-pemfile", "dep:rustls-webpki"]
 config = [
     "dep:async-trait",
     "dep:config",
@@ -59,17 +59,16 @@ notify = { version = "6.1", features = ["serde"], optional = true }
 parking_lot = { version = "0.12", optional = true }
 rand = { version = "0.8", optional = true }
 rand_chacha = { version = "0.3", optional = true }
-rcgen = { version = "0.11", features = ["pem", "x509-parser"], optional = true }
-reqwest = { version = "0.11", optional = true }
+rcgen = { version = "0.13", features = ["pem", "x509-parser"], optional = true }
+reqwest = { version = "0.12", optional = true }
 ron = { version = "0.8", optional = true }
-rustls = { version = "0.21", features = [
-    "dangerous_configuration",
-], optional = true }
-rustls-pemfile = { version = "1.0", optional = true }
-salvo = { version = "0.66", features = ["oapi"], optional = true }
+rustls = { version = "0.23", features = ["ring"], optional = true }
+rustls-pemfile = { version = "2.1", optional = true }
+rustls-webpki = { version = "0.102", optional = true }
+salvo = { version = "0.67", features = ["oapi"], optional = true }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0", optional = true }
-tokio = { version = "1.34", features = [
+tokio = { version = "1.37", features = [
     "signal",
     "macros",
     "fs",

@@ -20,6 +20,7 @@ pub async fn write_file(path: impl AsRef<std::path::Path>, content: &[u8]) -> Re
 pub async fn touch_file(path: impl AsRef<std::path::Path>) -> Result<()> {
     fs::OpenOptions::new()
         .create(true)
+        .truncate(true)
         .write(true)
         .open(path.as_ref())
         .await
