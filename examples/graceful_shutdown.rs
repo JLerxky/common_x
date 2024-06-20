@@ -1,7 +1,7 @@
 use color_eyre::Result;
 use common_x::{
     graceful_shutdown::{CloseChain, CloseHandler},
-    signal::shutdown_signal,
+    signal::waiting_for_shutdown,
 };
 use tracing::info;
 
@@ -61,7 +61,7 @@ async fn main() -> Result<()> {
         tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
         info!("C drop");
     });
-    shutdown_signal().await;
+    waiting_for_shutdown().await;
     drop(close_chain);
     Ok(())
 }

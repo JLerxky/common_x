@@ -48,7 +48,7 @@ pub fn new_end_entity(name: &str, ca: &Certificate, ca_key: &KeyPair) -> (Certif
     (params.signed_by(&key_pair, ca, ca_key).unwrap(), key_pair)
 }
 
-pub fn read_ca(ca_path: &str) -> Result<RootCertStore> {
+pub fn read_ca(ca_path: String) -> Result<RootCertStore> {
     let ca_certs = read_certs(ca_path)?;
     let mut roots = rustls::RootCertStore::empty();
     for cert in ca_certs {
@@ -57,8 +57,8 @@ pub fn read_ca(ca_path: &str) -> Result<RootCertStore> {
     Ok(roots)
 }
 
-pub fn read_certs(cert_path: &str) -> Result<Vec<rustls::pki_types::CertificateDer>> {
-    let cert_bytes = fs::read(cert_path).context("failed to read certificate chain")?;
+pub fn read_certs(cert_path: String) -> Result<Vec<rustls::pki_types::CertificateDer<'static>>> {
+    let cert_bytes = fs::read(&cert_path).context("failed to read certificate chain")?;
 
     let cert_chain = if Into::<PathBuf>::into(cert_path)
         .extension()
@@ -72,8 +72,8 @@ pub fn read_certs(cert_path: &str) -> Result<Vec<rustls::pki_types::CertificateD
     Ok(cert_chain)
 }
 
-pub fn read_key(key_path: &str) -> Result<rustls::pki_types::PrivateKeyDer> {
-    let key = fs::read(key_path).context("failed to read private key")?;
+pub fn read_key(key_path: String) -> Result<rustls::pki_types::PrivateKeyDer<'static>> {
+    let key = fs::read(&key_path).context("failed to read private key")?;
     let key = if Into::<PathBuf>::into(key_path)
         .extension()
         .map_or(false, |x| x == "der")
@@ -181,7 +181,7 @@ pub fn create_any_server_name_config(ca_path: &str) -> Result<ClientConfig> {
     Ok(ClientConfig::builder()
         .dangerous()
         .with_custom_certificate_verifier(Arc::new(WebPkiVerifierAnyServerName::new(read_ca(
-            ca_path,
+            ca_path.to_owned(),
         )?)))
         .with_no_client_auth())
 }

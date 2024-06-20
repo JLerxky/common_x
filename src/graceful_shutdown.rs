@@ -1,4 +1,4 @@
-use std::sync::OnceLock;
+use std::{sync::OnceLock, time::Duration};
 
 use flume::{Receiver, Sender};
 use parking_lot::Mutex;
@@ -9,13 +9,19 @@ pub fn close_chain() -> &'static Mutex<CloseChain> {
 }
 
 pub struct CloseHandler {
-    pub close_rv: Receiver<()>,
-    pub _prev_tx: Option<Sender<()>>,
+    close_rv: Receiver<()>,
+    _prev_tx: Option<Sender<()>>,
 }
 
 impl CloseHandler {
     pub fn handle(&self) {
         self.close_rv.recv().ok();
+    }
+
+    pub fn handle_timeout(&self, timeout: u64) {
+        self.close_rv
+            .recv_timeout(Duration::from_secs(timeout))
+            .ok();
     }
 
     pub async fn handle_async(&self) {
@@ -32,7 +38,7 @@ impl CloseChain {
     }
 
     pub fn close(&mut self) {
-        self.0 = Vec::new();
+        self.0.clear();
     }
 
     pub fn handler(&mut self, deep: usize) -> CloseHandler {

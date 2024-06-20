@@ -1,6 +1,6 @@
 [package]
 name = "common_x"
-version = "0.4.0"
+version = "0.5.0"
 edition = "2021"
 description = "common"
 readme = "README.md"
@@ -65,10 +65,10 @@ ron = { version = "0.8", optional = true }
 rustls = { version = "0.23", features = ["ring"], optional = true }
 rustls-pemfile = { version = "2.1", optional = true }
 rustls-webpki = { version = "0.102", optional = true }
-salvo = { version = "0.67", features = ["oapi"], optional = true }
+salvo = { version = "0.68", features = ["oapi"], optional = true }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0", optional = true }
-tokio = { version = "1.37", features = [
+tokio = { version = "1.38", features = [
     "signal",
     "macros",
     "fs",

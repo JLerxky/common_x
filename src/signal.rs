@@ -1,7 +1,7 @@
 use tokio::signal;
 use tracing::info;
 
-pub async fn shutdown_signal() {
+pub async fn waiting_for_shutdown() {
     let ctrl_c = async {
         signal::ctrl_c()
             .await
