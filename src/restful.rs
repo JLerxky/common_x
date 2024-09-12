@@ -58,21 +58,13 @@ async fn health() -> Result<impl IntoResponse, RESTfulError> {
 }
 
 pub async fn http_serve(port: u16, router: Router) -> Result<()> {
-    let app = router
-        .route("/health", get(health))
-        .layer((
-            TraceLayer::new_for_http(),
-            // Graceful shutdown will wait for outstanding requests to complete. Add a timeout so
-            // requests don't hang forever.
-            TimeoutLayer::new(Duration::from_secs(10)),
-        ))
-        .fallback(|| async {
-            (
-                StatusCode::NOT_FOUND,
-                json!({ "code": 404, "message": "Not Found" }).to_string(),
-            )
-                .into_response()
-        });
+    let app = router.route("/health", get(health)).fallback(|| async {
+        (
+            StatusCode::NOT_FOUND,
+            json!({ "code": 404, "message": "Not Found" }).to_string(),
+        )
+            .into_response()
+    });
 
     let listener = TcpListener::bind(format!("0.0.0.0:{}", port)).await?;
 
