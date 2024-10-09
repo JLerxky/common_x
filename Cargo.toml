@@ -53,7 +53,6 @@ restful = [
     "dep:serde_json",
     "dep:tokio",
     "dep:tower",
-    "dep:tower-http",
     "signal",
 ]
 ron = ["dep:ron"]
@@ -92,10 +91,6 @@ tokio = { version = "1.39", features = [
 ], optional = true }
 toml = { version = "0.8", optional = true }
 tower = { version = "0.5", features = ["util"], optional = true }
-tower-http = { version = "0.5", features = [
-    "timeout",
-    "trace",
-], optional = true }
 tracing = "0.1"
 tracing-appender = { version = "0.2", optional = true }
 tracing-subscriber = { version = "0.3", features = [

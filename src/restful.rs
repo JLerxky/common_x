@@ -16,7 +16,6 @@ use color_eyre::eyre::{eyre, Error, Result};
 use serde::Serialize;
 use serde_json::json;
 use tokio::{net::TcpListener, signal};
-use tower_http::{timeout::TimeoutLayer, trace::TraceLayer};
 use tracing::info;
 
 use crate::signal::waiting_for_shutdown;
