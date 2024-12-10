@@ -31,6 +31,13 @@ pub fn init_log(config: LogConfig) {
     set_log(Some(config));
 }
 
+pub fn init_log_file(filter: &str, directory: &str, file_name_prefix: &str) {
+    set_log(Some(LogConfig {
+        filter: filter.to_owned(),
+        rolling_file: Some((directory.to_owned(), file_name_prefix.to_owned())),
+    }))
+}
+
 fn set_log(log_config: Option<LogConfig>) {
     let log_config = log_config.unwrap_or_default();
     struct LocalTimer;
