@@ -11,7 +11,7 @@ categories = ["development-tools", "game-development", "web-programming"]
 keywords = ["common"]
 
 [features]
-default = ["full"]
+default = []
 full = [
     "tls",
     "config",
