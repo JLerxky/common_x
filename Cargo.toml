@@ -1,6 +1,6 @@
 [package]
 name = "common_x"
-version = "0.6.3"
+version = "0.7.0"
 edition = "2021"
 description = "common"
 readme = "README.md"
@@ -11,7 +11,7 @@ categories = ["development-tools", "game-development", "web-programming"]
 keywords = ["common"]
 
 [features]
-default = []
+default = ["full"]
 full = [
     "tls",
     "config",
@@ -49,6 +49,7 @@ mailer = ["dep:lettre"]
 rand = ["dep:rand", "dep:rand_chacha"]
 restful = [
     "dep:axum",
+    "dep:axum-extra",
     "dep:axum-server",
     "dep:serde_json",
     "dep:tokio",
@@ -62,12 +63,13 @@ time = ["dep:chrono"]
 
 [dependencies]
 async-trait = { version = "0.1", optional = true }
-axum = { version = "0.7", optional = true }
+axum = { version = "0.8", optional = true }
+axum-extra = { version = "0.10", optional = true }
 axum-server = { version = "0.7", features = ["tls-rustls"], optional = true }
 blake3 = { version = "1.5", optional = true }
 chrono = { version = "0.4", optional = true }
 color-eyre = "0.6"
-config = { version = "0.14", optional = true }
+config = { version = "0.15", optional = true }
 flume = { version = "0.11", optional = true }
 lettre = { version = "0.11", optional = true }
 notify = { version = "7.0", features = ["serde"], optional = true }
@@ -82,7 +84,7 @@ rustls-pemfile = { version = "2.2", optional = true }
 rustls-webpki = { version = "0.102", optional = true }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0", optional = true }
-tokio = { version = "1.41", features = [
+tokio = { version = "1.42", features = [
     "signal",
     "macros",
     "fs",

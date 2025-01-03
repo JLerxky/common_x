@@ -1,10 +1,9 @@
 pub use axum;
+use axum_extra::extract::Host;
 
 use std::{future::Future, net::SocketAddr, path::PathBuf, time::Duration};
 
 use axum::{
-    async_trait,
-    extract::Host,
     handler::HandlerWithoutStateExt,
     http::{StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
@@ -121,7 +120,6 @@ pub struct RESTfulResponse<T: Serialize> {
 
 unsafe impl<T: Serialize> Send for RESTfulResponse<T> {}
 
-#[async_trait]
 impl<T: Serialize> IntoResponse for RESTfulResponse<T> {
     fn into_response(self) -> Response {
         (
