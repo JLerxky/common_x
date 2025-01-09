@@ -1,10 +1,12 @@
+use std::time::Duration;
+
 use color_eyre::Result;
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::{AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor};
 use serde::{Deserialize, Serialize};
 use tracing::{error, info};
 
-#[derive(Serialize, Deserialize, Default, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(default)]
 pub struct MailerConfig {
     pub username: String,
@@ -12,6 +14,20 @@ pub struct MailerConfig {
     pub relay: String,
     pub port: u16,
     pub tls: bool,
+    pub timeout: u64,
+}
+
+impl Default for MailerConfig {
+    fn default() -> Self {
+        Self {
+            username: Default::default(),
+            password: Default::default(),
+            relay: Default::default(),
+            port: 465,
+            tls: false,
+            timeout: 5000,
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -28,7 +44,11 @@ impl Mailer {
         } else {
             AsyncSmtpTransport::<Tokio1Executor>::relay(&config.relay)?
         };
-        let mailer = builder.port(config.port).credentials(creds).build();
+        let mailer = builder
+            .port(config.port)
+            .credentials(creds)
+            .timeout(Some(Duration::from_millis(config.timeout)))
+            .build();
 
         Ok(Self {
             address: config.username.to_string(),
@@ -59,6 +79,7 @@ async fn test_mailer() -> Result<()> {
         relay: "relay".to_string(),
         port: 587,
         tls: false,
+        timeout: 5000,
     })?;
     mailer
         .send("Test", "This is a test email", "name@host")
