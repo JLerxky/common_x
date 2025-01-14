@@ -56,17 +56,11 @@ async fn health() -> Result<impl IntoResponse, RESTfulError> {
 }
 
 pub async fn http_serve(port: u16, router: Router) -> Result<()> {
-    let app = router.route("/health", get(health)).fallback(|| async {
-        (
-            StatusCode::NOT_FOUND,
-            json!({ "code": 404, "message": "Not Found" }).to_string(),
-        )
-            .into_response()
-    });
+    let app = router.route("/health", get(health));
 
-    let listener = TcpListener::bind(format!("0.0.0.0:{}", port)).await?;
+    let listener = TcpListener::bind(format!("[::]:{}", port)).await?;
 
-    info!("listening on 0.0.0.0:{port}");
+    info!("listening on [::]:{port}");
 
     axum::serve(listener, app)
         .with_graceful_shutdown(waiting_for_shutdown())
@@ -92,13 +86,7 @@ pub async fn https_serve(
     let config =
         RustlsConfig::from_pem_file(PathBuf::from(cert_path), PathBuf::from(key_path)).await?;
 
-    let app = router.route("/health", get(health)).fallback(|| async {
-        (
-            StatusCode::NOT_FOUND,
-            json!({ "code": 404, "message": "Not Found" }).to_string(),
-        )
-            .into_response()
-    });
+    let app = router.route("/health", get(health));
 
     let addr = SocketAddr::from(([0, 0, 0, 0], https_port));
     info!("listening on https {addr}");

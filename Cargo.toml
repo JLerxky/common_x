@@ -1,6 +1,6 @@
 [package]
 name = "common_x"
-version = "0.8.1"
+version = "0.8.2"
 edition = "2021"
 description = "common"
 readme = "README.md"
@@ -77,7 +77,7 @@ lettre = { version = "0.11", default-features = false, features = [
     "tokio1-native-tls",
     "smtp-transport",
 ], optional = true }
-notify = { version = "7.0", features = ["serde"], optional = true }
+notify = { version = "8.0", features = ["serde"], optional = true }
 parking_lot = { version = "0.12", optional = true }
 rand = { version = "0.8", optional = true }
 rand_chacha = { version = "0.3", optional = true }
