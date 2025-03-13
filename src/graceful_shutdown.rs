@@ -16,17 +16,17 @@ pub struct CloseToken {
 }
 
 impl CloseToken {
-    pub fn handle(&self) {
+    pub fn closed(&self) {
         self.close_rv.recv().ok();
     }
 
-    pub fn handle_timeout(&self, timeout: u64) {
+    pub fn closed_with_timeout(&self, timeout: u64) {
         self.close_rv
             .recv_timeout(Duration::from_secs(timeout))
             .ok();
     }
 
-    pub async fn handle_async(&self) {
+    pub async fn closed_async(&self) {
         self.close_rv.recv_async().await.ok();
     }
 }
