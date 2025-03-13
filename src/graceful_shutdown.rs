@@ -1,14 +1,6 @@
-use std::{
-    sync::{Arc, Mutex, OnceLock},
-    time::Duration,
-};
+use std::{sync::Mutex, time::Duration};
 
 use flume::{Receiver, Sender};
-
-pub fn close_chain() -> &'static Arc<CloseChain> {
-    static CLOSE_CHAIN: OnceLock<Arc<CloseChain>> = OnceLock::new();
-    CLOSE_CHAIN.get_or_init(|| Arc::new(CloseChain::default()))
-}
 
 pub struct CloseToken {
     close_rv: Receiver<()>,
@@ -31,24 +23,22 @@ impl CloseToken {
     }
 }
 
-#[derive(Default)]
 pub struct CloseChain(Mutex<Vec<(Sender<()>, Receiver<()>)>>);
+
+impl Default for CloseChain {
+    fn default() -> Self {
+        Self(Mutex::new(vec![flume::bounded(0)]))
+    }
+}
 
 impl CloseChain {
     pub fn close(&self) {
         self.0.lock().unwrap().clear();
     }
 
-    pub fn token(&self, deep: usize) -> CloseToken {
-        let mut chain = self.0.lock().unwrap();
-        let len = chain.len();
-
-        if deep >= len {
-            for _ in len..=deep {
-                chain.push(flume::bounded(0));
-            }
-        }
-
+    pub fn token(&self) -> CloseToken {
+        let chain = self.0.lock().unwrap();
+        let deep = chain.len() - 1;
         if deep == 0 {
             CloseToken {
                 close_rv: chain[deep].1.clone(),
@@ -59,6 +49,18 @@ impl CloseChain {
                 close_rv: chain[deep].1.clone(),
                 _prev_tx: Some(chain[deep - 1].0.clone()),
             }
+        }
+    }
+
+    pub fn child_token(&self) -> CloseToken {
+        let mut chain = self.0.lock().unwrap();
+        let deep = chain.len();
+
+        chain.push(flume::bounded(0));
+
+        CloseToken {
+            close_rv: chain[deep].1.clone(),
+            _prev_tx: Some(chain[deep - 1].0.clone()),
         }
     }
 }
