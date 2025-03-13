@@ -13,7 +13,7 @@ pub fn rand_one_in_vec(probability: &[usize], rng: &mut ChaCha8Rng) -> usize {
         prob_sum.push(prob_sum[i - 1] + probability[i]);
     }
     debug!("{:?}", prob_sum);
-    let r = rng.gen_range(1..=prob_sum[n - 1]);
+    let r = rng.random_range(1..=prob_sum[n - 1]);
     if r <= prob_sum[0] {
         return 0;
     }

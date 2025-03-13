@@ -2,7 +2,7 @@ use std::{fs, io::Write, path::Path};
 
 use ron::{
     de::from_reader,
-    ser::{to_string_pretty, PrettyConfig},
+    ser::{PrettyConfig, to_string_pretty},
 };
 use serde::de::DeserializeOwned;
 

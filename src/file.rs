@@ -1,4 +1,4 @@
-use color_eyre::{eyre::eyre, Result};
+use color_eyre::{Result, eyre::eyre};
 use tokio::{
     fs::{self, OpenOptions},
     io::{AsyncReadExt, AsyncWriteExt, BufWriter},

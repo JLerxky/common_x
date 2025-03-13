@@ -4,14 +4,14 @@ use axum_extra::extract::Host;
 use std::{future::Future, net::SocketAddr, path::PathBuf, time::Duration};
 
 use axum::{
+    Router,
     handler::HandlerWithoutStateExt,
     http::{StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
     routing::get,
-    Router,
 };
 use axum_server::tls_rustls::RustlsConfig;
-use color_eyre::eyre::{eyre, Error, Result};
+use color_eyre::eyre::{Error, Result, eyre};
 use serde::Serialize;
 use serde_json::json;
 use tokio::{net::TcpListener, signal};

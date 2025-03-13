@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use tracing_subscriber::{
-    fmt::{format::Writer, time::FormatTime, writer::MakeWriterExt},
     EnvFilter,
+    fmt::{format::Writer, time::FormatTime, writer::MakeWriterExt},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

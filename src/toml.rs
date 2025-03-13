@@ -1,6 +1,6 @@
 use std::{fs, io::Write, path::Path};
 
-use color_eyre::{eyre::eyre, Result};
+use color_eyre::{Result, eyre::eyre};
 use serde::Deserialize;
 
 pub fn read_toml<'a, T: Deserialize<'a>>(path: impl AsRef<Path>) -> Result<T> {

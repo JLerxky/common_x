@@ -1,7 +1,7 @@
 use std::{fmt::Debug, path::Path, sync::Arc};
 
 use async_trait::async_trait;
-use color_eyre::eyre::{eyre, Result};
+use color_eyre::eyre::{Result, eyre};
 use config::{AsyncSource, Config, ConfigError, FileFormat, Map};
 use notify::{Event, RecommendedWatcher, RecursiveMode, Watcher};
 use parking_lot::RwLock;

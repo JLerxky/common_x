@@ -1,7 +1,9 @@
-use std::{sync::OnceLock, time::Duration};
+use std::{
+    sync::{Mutex, OnceLock},
+    time::Duration,
+};
 
 use flume::{Receiver, Sender};
-use parking_lot::Mutex;
 
 pub fn close_chain() -> &'static Mutex<CloseChain> {
     static CLOSE_CHAIN: OnceLock<Mutex<CloseChain>> = OnceLock::new();

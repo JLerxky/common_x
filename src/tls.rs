@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use std::{fs, path::PathBuf};
 
-use color_eyre::eyre::{bail, Context, Result};
+use color_eyre::eyre::{Context, Result, bail};
 use rcgen::{
     BasicConstraints, Certificate, CertificateParams, DnType, DnValue, ExtendedKeyUsagePurpose,
     IsCa, KeyPair, KeyUsagePurpose,
@@ -62,7 +62,7 @@ pub fn read_certs(cert_path: String) -> Result<Vec<rustls::pki_types::Certificat
 
     let cert_chain = if Into::<PathBuf>::into(cert_path)
         .extension()
-        .map_or(false, |x| x == "der")
+        .is_some_and(|x| x == "der")
     {
         vec![CertificateDer::from(cert_bytes)]
     } else {
@@ -76,7 +76,7 @@ pub fn read_key(key_path: String) -> Result<rustls::pki_types::PrivateKeyDer<'st
     let key = fs::read(&key_path).context("failed to read private key")?;
     let key = if Into::<PathBuf>::into(key_path)
         .extension()
-        .map_or(false, |x| x == "der")
+        .is_some_and(|x| x == "der")
     {
         PrivateSec1KeyDer::from(key).into()
     } else {
