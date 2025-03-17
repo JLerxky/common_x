@@ -1,6 +1,6 @@
 [package]
 name = "common_x"
-version = "0.8.6"
+version = "0.8.7"
 edition = "2024"
 description = "common"
 readme = "README.md"
