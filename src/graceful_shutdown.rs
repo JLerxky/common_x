@@ -33,6 +33,9 @@ impl CloseToken {
     pub fn close(&self) {
         self.close_chain.lock().unwrap().clear();
     }
+    pub fn close_child(&self) {
+        let _ = self.close_chain.lock().unwrap().split_off(self.deep + 1);
+    }
 
     pub fn closed(&self) {
         self.close_rv.recv().ok();
