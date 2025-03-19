@@ -32,12 +32,6 @@ impl Default for CloseToken {
 impl CloseToken {
     pub fn close(&self) {
         self.close_chain.lock().unwrap().clear();
-        self.closed();
-    }
-
-    pub fn close_with_timeout(&self, timeout: u64) {
-        self.close_chain.lock().unwrap().clear();
-        self.closed_with_timeout(timeout);
     }
 
     pub fn closed(&self) {
