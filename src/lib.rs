@@ -22,5 +22,3 @@ pub mod signal;
 pub mod time;
 #[cfg(feature = "tls")]
 pub mod tls;
-#[cfg(feature = "toml")]
-pub mod toml;

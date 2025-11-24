@@ -1,6 +1,6 @@
 [package]
 name = "common_x"
-version = "0.8.9"
+version = "0.8.10"
 edition = "2024"
 description = "common"
 readme = "README.md"
@@ -23,7 +23,6 @@ full = [
     "rand",
     "restful",
     "ron",
-    "toml",
     "time",
     "signal",
 ]
@@ -58,15 +57,14 @@ restful = [
 ]
 ron = ["dep:ron"]
 signal = ["dep:tokio"]
-toml = ["dep:toml"]
 time = ["dep:chrono"]
 
 [dependencies]
 async-trait = { version = "0.1", optional = true }
 axum = { version = "0.8", optional = true }
-axum-extra = { version = "0.10", optional = true }
+axum-extra = { version = "0.12", optional = true }
 axum-server = { version = "0.7", features = ["tls-rustls"], optional = true }
-blake3 = { version = "1.6", optional = true }
+blake3 = { version = "1.8", optional = true }
 chrono = { version = "0.4", optional = true }
 color-eyre = "0.6"
 config = { version = "0.15", optional = true }
@@ -77,13 +75,13 @@ lettre = { version = "0.11", default-features = false, features = [
     "tokio1-native-tls",
     "smtp-transport",
 ], optional = true }
-notify = { version = "8.0", features = ["serde"], optional = true }
+notify = { version = "8.2", features = ["serde"], optional = true }
 parking_lot = { version = "0.12", optional = true }
 rand = { version = "0.9", optional = true }
 rand_chacha = { version = "0.9", optional = true }
-rcgen = { version = "0.13", features = ["pem", "x509-parser"], optional = true }
+rcgen = { version = "0.14", features = ["pem", "x509-parser"], optional = true }
 reqwest = { version = "0.12", optional = true }
-ron = { version = "0.8", optional = true }
+ron = { version = "0.12", optional = true }
 rustls = { version = "0.23", features = ["ring"], optional = true }
 rustls-pemfile = { version = "2.2", optional = true }
 rustls-webpki = { version = "0.103", optional = true }
@@ -96,7 +94,6 @@ tokio = { version = "1", features = [
     "io-util",
     "rt-multi-thread",
 ], optional = true }
-toml = { version = "0.8", optional = true }
 tower = { version = "0.5", features = ["util"], optional = true }
 tracing = "0.1"
 tracing-appender = { version = "0.2", optional = true }

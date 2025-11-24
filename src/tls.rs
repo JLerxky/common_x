@@ -45,7 +45,8 @@ pub fn new_end_entity(name: &str, ca: &Certificate, ca_key: &KeyPair) -> (Certif
         .push(ExtendedKeyUsagePurpose::ServerAuth);
 
     let key_pair = KeyPair::generate().unwrap();
-    (params.signed_by(&key_pair, ca, ca_key).unwrap(), key_pair)
+    let issuer = rcgen::Issuer::from_ca_cert_der(ca.der(), ca_key).unwrap();
+    (params.signed_by(&key_pair, &issuer).unwrap(), key_pair)
 }
 
 pub fn read_ca(ca_path: String) -> Result<RootCertStore> {
@@ -202,32 +203,84 @@ async fn test() {
     .unwrap();
 
     // server cert
-    let (server_cert, server_key) = new_end_entity("test-host", &ca_cert, &ca_key_pair);
+    let (server_cert, server_key) = new_end_entity("post.reread.fun", &ca_cert, &ca_key_pair);
     create_file(
-        "./config/cert/server_cert.pem",
+        "./config/cert/post.reread.fun_cert.pem",
         server_cert.pem().as_bytes(),
     )
     .await
     .unwrap();
     create_file(
-        "./config/cert/server_key.pem",
+        "./config/cert/post.reread.fun_key.pem",
+        server_key.serialize_pem().as_bytes(),
+    )
+    .await
+    .unwrap();
+    let (server_cert, server_key) = new_end_entity("plc.reread.fun", &ca_cert, &ca_key_pair);
+    create_file(
+        "./config/cert/plc.reread.fun_cert.pem",
+        server_cert.pem().as_bytes(),
+    )
+    .await
+    .unwrap();
+    create_file(
+        "./config/cert/plc.reread.fun_key.pem",
+        server_key.serialize_pem().as_bytes(),
+    )
+    .await
+    .unwrap();
+    let (server_cert, server_key) = new_end_entity("bsky.reread.fun", &ca_cert, &ca_key_pair);
+    create_file(
+        "./config/cert/bsky.reread.fun_cert.pem",
+        server_cert.pem().as_bytes(),
+    )
+    .await
+    .unwrap();
+    create_file(
+        "./config/cert/bsky.reread.fun_key.pem",
+        server_key.serialize_pem().as_bytes(),
+    )
+    .await
+    .unwrap();
+    let (server_cert, server_key) = new_end_entity("pds.reread.fun", &ca_cert, &ca_key_pair);
+    create_file(
+        "./config/cert/pds.reread.fun_cert.pem",
+        server_cert.pem().as_bytes(),
+    )
+    .await
+    .unwrap();
+    create_file(
+        "./config/cert/pds.reread.fun_key.pem",
+        server_key.serialize_pem().as_bytes(),
+    )
+    .await
+    .unwrap();
+    let (server_cert, server_key) = new_end_entity("*.pds.reread.fun", &ca_cert, &ca_key_pair);
+    create_file(
+        "./config/cert/web5.reread.fun_cert.pem",
+        server_cert.pem().as_bytes(),
+    )
+    .await
+    .unwrap();
+    create_file(
+        "./config/cert/web5.reread.fun_key.pem",
         server_key.serialize_pem().as_bytes(),
     )
     .await
     .unwrap();
 
     // client cert
-    let (client_cert, client_key) = new_end_entity("client.test-host", &ca_cert, &ca_key_pair);
-    create_file(
-        "./config/cert/client_cert.pem",
-        client_cert.pem().as_bytes(),
-    )
-    .await
-    .unwrap();
-    create_file(
-        "./config/cert/client_key.pem",
-        client_key.serialize_pem().as_bytes(),
-    )
-    .await
-    .unwrap();
+    // let (client_cert, client_key) = new_end_entity("client.test-host", &ca_cert, &ca_key_pair);
+    // create_file(
+    //     "./config/cert/client_cert.pem",
+    //     client_cert.pem().as_bytes(),
+    // )
+    // .await
+    // .unwrap();
+    // create_file(
+    //     "./config/cert/client_key.pem",
+    //     client_key.serialize_pem().as_bytes(),
+    // )
+    // .await
+    // .unwrap();
 }
