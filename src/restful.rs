@@ -1,10 +1,9 @@
 pub use axum;
-use axum_extra::extract::Host;
 
 use std::{future::Future, net::SocketAddr, path::PathBuf, time::Duration};
 
 use axum::{
-    Router,
+    BoxError, Router,
     handler::HandlerWithoutStateExt,
     http::{StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
@@ -18,6 +17,12 @@ use tokio::{net::TcpListener, signal};
 use tracing::info;
 
 use crate::signal::waiting_for_shutdown;
+
+#[derive(Clone, Copy)]
+struct Ports {
+    http: u16,
+    https: u16,
+}
 
 #[derive(Debug)]
 pub struct RESTfulError {
@@ -77,11 +82,11 @@ pub async fn https_serve(
 ) -> Result<()> {
     let handle = axum_server::Handle::new();
     let shutdown_future = shutdown_signal(handle.clone());
-    tokio::spawn(redirect_http_to_https(
-        http_port,
-        https_port,
-        shutdown_future,
-    ));
+    let ports = Ports {
+        http: http_port,
+        https: https_port,
+    };
+    tokio::spawn(redirect_http_to_https(ports, shutdown_future));
 
     let config =
         RustlsConfig::from_pem_file(PathBuf::from(cert_path), PathBuf::from(key_path)).await?;
@@ -154,7 +159,7 @@ pub fn err(code: u16, message: String) -> RESTfulError {
     }
 }
 
-async fn shutdown_signal(handle: axum_server::Handle) {
+async fn shutdown_signal(handle: axum_server::Handle<SocketAddr>) {
     let ctrl_c = async {
         signal::ctrl_c()
             .await
@@ -181,27 +186,25 @@ async fn shutdown_signal(handle: axum_server::Handle) {
     handle.graceful_shutdown(Some(Duration::from_secs(10))); // 10 secs is how long docker will wait
 }
 
-async fn redirect_http_to_https<F>(http_port: u16, https_port: u16, signal: F)
+async fn redirect_http_to_https<F>(ports: Ports, signal: F)
 where
     F: Future<Output = ()> + Send + 'static,
 {
-    fn make_https(host: String, uri: Uri, http_port: u16, https_port: u16) -> Result<Uri> {
+    fn make_https(uri: Uri, https_port: u16) -> Result<Uri, BoxError> {
         let mut parts = uri.into_parts();
 
         parts.scheme = Some(axum::http::uri::Scheme::HTTPS);
+        parts.authority = Some(format!("localhost:{https_port}").parse()?);
 
         if parts.path_and_query.is_none() {
             parts.path_and_query = Some("/".parse().unwrap());
         }
 
-        let https_host = host.replace(&http_port.to_string(), &https_port.to_string());
-        parts.authority = Some(https_host.parse()?);
-
         Ok(Uri::from_parts(parts)?)
     }
 
-    let redirect = move |Host(host): Host, uri: Uri| async move {
-        match make_https(host, uri, http_port, https_port) {
+    let redirect = move |uri: Uri| async move {
+        match make_https(uri, ports.https) {
             Ok(uri) => Ok(Redirect::permanent(&uri.to_string())),
             Err(error) => {
                 tracing::warn!(%error, "failed to convert URI to HTTPS");
@@ -210,7 +213,7 @@ where
         }
     };
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], http_port));
+    let addr = SocketAddr::from(([0, 0, 0, 0], ports.http));
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     tracing::debug!("listening on {addr}");
     axum::serve(listener, redirect.into_make_service())

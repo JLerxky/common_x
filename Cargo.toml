@@ -1,6 +1,6 @@
 [package]
 name = "common_x"
-version = "0.8.10"
+version = "0.9.0"
 edition = "2024"
 description = "common"
 readme = "README.md"
@@ -63,12 +63,12 @@ time = ["dep:chrono"]
 async-trait = { version = "0.1", optional = true }
 axum = { version = "0.8", optional = true }
 axum-extra = { version = "0.12", optional = true }
-axum-server = { version = "0.7", features = ["tls-rustls"], optional = true }
+axum-server = { version = "0.8", features = ["tls-rustls"], optional = true }
 blake3 = { version = "1.8", optional = true }
 chrono = { version = "0.4", optional = true }
 color-eyre = "0.6"
 config = { version = "0.15", optional = true }
-flume = { version = "0.11", optional = true }
+flume = { version = "0.12", optional = true }
 lettre = { version = "0.11", default-features = false, features = [
     "builder",
     "tokio1",
@@ -80,7 +80,7 @@ parking_lot = { version = "0.12", optional = true }
 rand = { version = "0.9", optional = true }
 rand_chacha = { version = "0.9", optional = true }
 rcgen = { version = "0.14", features = ["pem", "x509-parser"], optional = true }
-reqwest = { version = "0.12", optional = true }
+reqwest = { version = "0.13", optional = true }
 ron = { version = "0.12", optional = true }
 rustls = { version = "0.23", features = ["ring"], optional = true }
 rustls-pemfile = { version = "2.2", optional = true }
